@@ -1,0 +1,81 @@
+<form action="index.php" method="post">
+			
+			<?php if($val == 2 || $val == 5){ 
+			$class = " class='alert' ";
+				if($val == 2){
+					echo '<p class="alert">Имя должно состоять только из русских букв</p>';
+				}elseif($val == 5){
+					echo '<p class="alert">Имя должно содержать только латинские буквы</p>';
+				} 
+			}else{ $class = '';} ?>
+			<p><input <?php echo $class; ?> type="text" name="name" value="<?php echo $_POST['name']; ?>">
+ 			<label>Имя</label></p>
+ 			<?php if($val == 3 || $val == 6){ 
+			$class = " class='alert' ";
+				if($val == 3){
+					echo '<p class="alert">Фамилия должна состоять только из русских букв</p>';
+				}elseif($val == 5){
+					echo '<p class="alert">Фамилия должна содержать только латинские буквы</p>';
+				} 
+			}else{ $class = '';} ?>
+			<p> <input <?php echo $class; ?> type="text" name="family" value="<?php echo $_POST['family']; ?>">
+ 			<label>Фамилия</label></p>
+ 			<?php if($val == 8){ 
+			$class = " class='alert' ";
+			echo '<p class="alert">Не правильно указан возраст - от 10 до  100 лет</p>'; 
+			}else{ $class = '';} ?>
+			<p> <input <?php echo $class; ?> type="text" name="age" value="<?php echo $_POST['age']; ?>">
+ 			<label>Возраст</label></p>
+ 			<?php if($val == 9){ 
+			$class = " class='alert' ";
+			echo '<p class="alert">Не правильно указан e-mail</p>'; 
+			}else{ $class = '';} ?>
+			<p> <input  <?php echo $class; ?>type="text" name="email" value="<?php echo $_POST['email']; ?>">
+ 			<label>Электронная почта</label></p>
+ 			<?php if($val == 4 || $val == 7){ 
+			$class = " class='alert' ";
+				if($val == 4){
+					echo '<p class="alert">Проверьте название города</p>';
+				}elseif($val == 7){
+					echo '<p class="alert">Название города должно содержать только латинские буквы</p>';
+				} 
+			}else{ $class = '';} ?>
+			<p> <input <?php echo $class; ?> type="text" name="city" value="<?php echo $_POST['city']; ?>">
+ 			<label>Город</label></p>
+ 			<?php if($val == 1){ 
+			$class = " class='alert' ";
+			echo '<p class="alert">Нет такого языка в системе</p>'; 
+			}else{ $class = '';} 
+			echo "<p><select ".$class." name='lang'>";
+ 					foreach($language as $key => $value){
+ 						if(!empty($_POST['lang'])){
+ 							$a = $_POST['lang'];
+ 						}else{
+ 							$a = 'eng';
+ 						}
+	 						if($a == $key){
+	 							$option = 'selected';
+	 						}else{
+	 							$option = '';
+	 						}
+ 						echo "<option ".$option." value='".$key."'>".$value."</option>"; 
+ 					}
+				    echo "</select>"; ?>
+			   <label>Язык</label></p>
+ 			<?php if($val == 10){ 
+			$class = " class='alert' ";
+			echo '<p class="alert">Логин должен быть от 4 до 12 символов и состоять из латинских букв, цифр и знаков "-" и "_"</p>'; 
+			}else{ $class = '';} ?>
+			<p> <input <?php echo $class; ?> type="text" name="login" value="<?php echo $_POST['login']; ?>">
+ 			<label>Логин</label></p>
+ 			<?php if($val == 11){ 
+			$class = " class='alert' ";
+			echo '<p class="alert">Длина пароля должна быть от 6 до 10 символов</p>'; 
+			}else{ $class = '';} ?>
+			<p> <input <?php echo $class; ?> type="password" name="password" value="<?php echo $_POST['password']; ?>">
+ 			<label>Пароль</label> 
+ 			<button formaction="passGen.php" formmethod="post">Сгенерировать пароль</button></p>
+ 			<p><input <?php echo $class; ?> type="password" name="password_two" value="<?php echo $_POST['password']; ?>">
+ 			<label>Повторить пароль</label></p>
+ 			<p><input type="submit" value="Зарегистрироваться">
+</form>

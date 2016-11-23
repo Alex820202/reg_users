@@ -1,0 +1,21 @@
+body{
+	width: 1024px;
+	font-style: normal;
+	font-size: 12px;
+}
+.form{
+	width: 700px;
+	margin: 10px 20px;
+	padding: 10px;
+	border: #1d17e8 2px solid;
+	box-shadow: 0 0 10px rgba(53,117,202,0.5); 
+}
+.alert{
+	font-weight: lighter;
+	font-style: italic;
+	color: #ea1565;
+}
+input.alert, select.alert {
+	border: #ff0000 1px solid;
+	
+}
