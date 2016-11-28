@@ -1,49 +1,41 @@
 <?php
-try{
-	require_once(__DIR__.'/function.php');
-	$config = __DIR__.'/login.php';
+session_start();
+require_once(__DIR__.'/function.php');
+try{	
 	$dbh = db_connect($config);
-	
-	if(!empty($_POST) && $_GET['flag'] != 4){
-		$user = user_data();
-		$val = validUser($user, $language);
-		if($val == 100){
-			regUser($dbh, $user);	
-		}
-	}
-	
-?>	
-
+	$active = setSessionUser($dbh);
+?>
 <!DOCTYPE html>
 <html>
  <head>
-   <title>Registration users</title>
+   <title>Сайт</title>
    <link rel="stylesheet" href="style.css">
    <meta charset="utf-8">
  </head>
- <body>
- <div class="form">
- <?php 
- 
- 	if($_GET['flag'] == 1){
-		echo '<p class="alert">Не совпадают пароли!</p>';
-		include __DIR__.'/form.html';
-	}elseif($_GET['flag'] == 3){
-		echo '<p class="alert">Такой <b>Логин</b> уже существует!</p>';
-		include __DIR__.'/form.html';
-	}elseif($_GET['flag'] == 2){
-		echo 'Вы успешно зарегистрированы, Ваши учетные данные будут высланы на e-mail, указанный при регистрации!';
-	}else{
-		include __DIR__.'/form.html';
-	}
- 	
-?>
-</div>
- </body>
- </html>
-<?php 
+	 <body>
+	 	<div class="form">
+	 	<div class="container">
+	 		<div class="left">
+			<?php if($active){
+					$login = $_SESSION['login'];
+				echo "<p class='button'><a href='profile.php?user=".$login."'>".$login."</a></p>";
+				echo "<p class='button'><a href='logout.php'>Выйти</a></p>";
+			}else{
+				echo "<p class='button'><a href='login.php'>Войти</a></p>";
+				echo "<p class='button'><a href='registration.php'>Зарегистрироваться</a></p>";
+			} ?>
+			</div>
+			<div class="right">
+		<?php if($active){ ?>
+				<div class="button type"><a href='users.php'>Список пользователей</a></div>
+				<div class="button type"><a href='post_users.php'>Личные сообщения</a></div>
+		<?php } ?>
+			</div>
+			</div>
+	 	</div>
+	 </body>
+</html>
+<?php
 } catch (PDOException $e) {
-	echo 'Ошибка базы данных!<br>'.$e->getMessage();
+	echo $e->getMessage();
 }
-
-?>

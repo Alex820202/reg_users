@@ -11,7 +11,7 @@ $pass = passGen($length);
    <meta charset="utf-8">
  </head>
  <body>
- <form action="index.php?flag=4" method="post">
+ <form action="registration.php?flag=4" method="post">
  		<p><input type="text" name="name" value="<?php echo $_POST['name']; ?>" hidden></p>
  			<p><input type="text" name="family" value="<?php echo $_POST['family']; ?>" hidden></p>
  			<p><input type="text" name="age" value="<?php echo $_POST['age']; ?>" hidden></p>

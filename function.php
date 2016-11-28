@@ -4,10 +4,14 @@
 */
 $language = array('ru'=>'Русский', 'eng'=>'English', 'de'=>'Deutsch', 'it'=>'Italiano');
 /*
+* Место расположения файла с параметрами доступа к БД
+*/
+$config = __DIR__.'/config.php';
+/*
  * Создание соединения с базой данных. На входе переменная, содержащая путь к файлу с настройками подключения, на выходе созданное подключение к базе данных
  */
-function db_connect($config){
-	require_once ($config);
+function db_connect($conf ){
+	require_once ($conf);
 	$dbh = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $user, $password);
 	$dbh -> setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
 	$dbh -> setAttribute( PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
@@ -30,7 +34,7 @@ function user_data(){
 	if($_POST['password'] == $_POST['password_two']){
 		$user['password'] = trim($_POST['password']);
 	}else{
-		header('Location: index.php?flag=1', TRUE, 303);
+		header('Location: registration.php?flag=1', TRUE, 303);
 	}
 	return $user;
 }
@@ -45,9 +49,9 @@ function regUser($dbh, $user){
 			$sql_reg = 'INSERT INTO users SET login=:login, name=:name, family=:family, age=:age, email=:email, city=:city, lang=:lang, data_reg=:data_reg, password=:password, salt=:salt';
 			$sth_reg = $dbh -> prepare($sql_reg);
 			$sth_reg -> execute($user);
-			header('Location: index.php?flag=2', TRUE, 303);
+			header('Location: registration.php?flag=2', TRUE, 303);
 		}else{
-			header('Location: index.php?flag=3', TRUE, 303);
+			header('Location: registration.php?flag=3', TRUE, 303);
 		}
 	} 
 
@@ -82,7 +86,7 @@ function validUser($user, $language){
 	if($user['age']<10 || $user['age']>100){
 		return 8; // Не правильно указан возраст.
 	}
-	if(preg_match('#^[a-zA-Z0-9]+@[a-z]+\.[a-z]{2,3}$#',$user['email']) == 0){
+	if(preg_match('#^[a-zA-Z0-9\.-_]+@[a-z]+\.[a-z]{2,3}$#',$user['email']) == 0){
 		return 9; // не правильный e-mail
 	}
 	if(strlen($user['login']) < 4 || strlen($user['login']) > 12 || preg_match('#[^a-zA-Z0-9_-]#',$user['login']) == 1){
@@ -163,5 +167,78 @@ function salt(){
  function saltPass($login, $password, $salt){
  	return md5(md5($salt).md5($password).md5($login));
  }
+/*
+* Функция выхода. Зануляет значение сессии и куки.
+*/
+function logout($config){
+	$t = time();
+	if(!empty($_COOKIE['login']) || !empty($_SESSION['login'])){
+		if(!empty($_SESSION['login'])){
+			$login = $_SESSION['login'];
+		}else{
+			$login = $_COOKIE['login']; 
+		}
+		$dbh = db_connect($config);
+		$sql_logout = 'UPDATE users SET cookie=NULL WHERE login=:login';
+		$sth_logout = $dbh -> prepare($sql_logout);
+		$data = array('login'=>$login);
+		$sth_logout -> execute($data);
+	}
+	session_unset();
+	session_destroy();
+	setcookie('login', '', $t);
+	setcookie('auth_long', '', $t);
+}
+/*
+*
+*/
 
+/*
+* Информация о пользователе из БД по логину
+*/
+function userDataByLogin($login, $dbh){
+	$login = trim(strip_tags($login));
+	$sql_login = 'SELECT * FROM users WHERE login=:login';
+	$sth_login = $dbh -> prepare($sql_login);
+	$sth_login -> execute(array('login'=>$login));
+	$result_login = $sth_login -> fetch();
+	return $result_login;
+}
+/*
+* Функция обновления кук в БД
+*/
+function setUserCookie($login, $cookie, $dbh){
+				$sql_auth_long = 'UPDATE users SET cookie=:cookie WHERE login=:login';
+				$sth_auth_long = $dbh -> prepare($sql_auth_long);
+				$data_auth_long['cookie'] = $cookie;
+				$data_auth_long['login'] = $login;
+				$sth_auth_long -> execute($data_auth_long);
+				
+}
+/*
+* Проверяем запущена сессия или нет, если нет, то смотрим куку пользователя сайта 
+*(от галочки запомнить меня со страницы login.php), если она присутствует, то запускаем сессию.
+* Если сессия стартовала, то возвращает TRUE, если нет, то FALSE.
+*/
+function setSessionUser($dbh){
+	if(!empty($_SESSION['auth']) && !empty($_SESSION['login'])){
+		return TRUE;
+	}elseif(!empty($_COOKIE['login']) && !empty($_COOKIE['auth_long'])){
+		$sql_verif_auth = 'SELECT * FROM users WHERE login=:login AND salt=:salt';
+		$sth_verif_auth = $dbh -> prepare($sql_verif_auth);
+		$data['login'] = $_COOKIE['login'];
+		$data['salt'] = $_COOKIE['auth_long'];
+		$sth_verif_auth ->execute($data);
+		$result = $sth_verif_auth ->fetch();
+		if($result){
+			$_SESSION['auth'] = TRUE;
+			$_SESSION['login'] = $_COOKIE['login'];
+			return TRUE;
+		}else{
+			return FALSE;
+		} 
+		}else{
+			return FALSE;
+		}
+}
 ?>
