@@ -11,6 +11,9 @@ if(!empty($_POST)){
 		if($pass == $result_login['password']){
 			$_SESSION['auth'] = 'true';
 			$_SESSION['login'] = $result_login['login'];
+			$_SESSION['banned'] = $result_login['banned'];
+			$_SESSION['status'] = $result_login['status'];
+			$_SESSION['data_end_ban'] = $result_login['data_end_ban'];
 			if($_POST['auth_long']){
 				$cookie = salt();
 				setUserCookie($result_login['login'], $cookie, $dbh);
@@ -19,6 +22,7 @@ if(!empty($_POST)){
 				setcookie('login', $result_login['login'], $t+10*365*24*3600);
 				}
 				setcookie('last_login_date', $t, $t+10*365*24*3600);
+				
 			header('Location: index.php', TRUE, 303);
 			}else{
 				$danger = "<p class='alert'>Не правильный пароль!</p>";

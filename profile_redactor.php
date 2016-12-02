@@ -8,7 +8,12 @@ $active = setSessionUser($dbh);
 if(!$active){
 	header('Location: login.php', TRUE, 303);
 }else{
-	$active_user = $_SESSION['login'];
+	if(!empty($_GET['user']) && $_SESSION['status'] == 10){
+		$active_user = trim(strip_tags($_GET['user']));
+	}else{
+		$active_user = $_SESSION['login'];
+	}
+	
 	if(empty($_POST)){
 		$user = userDataByLogin($active_user, $dbh);
 	}else{

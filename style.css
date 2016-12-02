@@ -62,3 +62,14 @@ div.new_message:after{
     font-size: 90%; /* Размер шрифта */ 
     padding: 5px; /* Поля вокруг текста */ 
 }
+table {
+    width: 100%; /* Ширина таблицы */
+    border-collapse: collapse; /* Убираем двойные линии между ячейками */
+   }
+td, th {
+    padding: 3px; /* Поля вокруг содержимого таблицы */
+    border: 1px solid black; /* Параметры рамки */
+   }
+th {
+    background: #b0e0e6; /* Цвет фона */
+   }

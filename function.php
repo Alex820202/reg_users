@@ -30,6 +30,9 @@ function user_data(){
 	$user['lang'] = trim(strip_tags($_POST['lang']));
 	$user['data_reg'] = time();
 	$user['login'] = trim(strip_tags($_POST['login']));
+	$user['status'] = 1;
+	$user['banned'] = 0;
+	$user['data_end_ban'] = 0;
 	
 	if($_POST['password'] == $_POST['password_two']){
 		$user['password'] = trim($_POST['password']);
@@ -46,7 +49,7 @@ function regUser($dbh, $user){
 		$user['salt'] = $salt;
 		$user['password'] = md5(md5($salt).md5($user['password']).md5($user['login']));	// алгоритм соления пароля.
 		if(loginFree($dbh, $login)){
-			$sql_reg = 'INSERT INTO users SET login=:login, name=:name, family=:family, age=:age, email=:email, city=:city, lang=:lang, data_reg=:data_reg, password=:password, salt=:salt';
+			$sql_reg = 'INSERT INTO users SET login=:login, name=:name, family=:family, age=:age, email=:email, city=:city, lang=:lang, data_reg=:data_reg, password=:password, salt=:salt, status=:status, banned=:banned, data_end_ban=:data_end_ban';
 			$sth_reg = $dbh -> prepare($sql_reg);
 			$sth_reg -> execute($user);
 			header('Location: registration.php?flag=2', TRUE, 303);
@@ -221,7 +224,25 @@ function setUserCookie($login, $cookie, $dbh){
 * Если сессия стартовала, то возвращает TRUE, если нет, то FALSE.
 */
 function setSessionUser($dbh){
-	if(!empty($_SESSION['auth']) && !empty($_SESSION['login'])){
+	if(!empty($_SESSION['auth']) && !empty($_SESSION['login'])&& !empty($_SESSION['status'])){
+		$t = time();
+		$sql_user = "SELECT data_end_ban FROM users WHERE login=:login";
+		$sth_user = $dbh -> prepare($sql_user);
+		$data_user['login'] = $_SESSION['login'];
+		$sth_user -> execute($data_user);
+		$result_user = $sth_user -> fetch();		 
+			if($t < $result_user['data_end_ban']){
+				$_SESSION['data_end_ban'] = $result['data_end_ban'];	
+			}else{
+				$sql_delete_ban = "UPDATE users SET data_end_ban=:time, banned=:banned WHERE login=:login";
+				$sth_delete_ban = $dbh ->prepare($sql_delete_ban);
+				$data_delete_ban['time'] = 0;
+				$data_delete_ban['banned'] = 0;
+				$data_delete_ban['login'] = $_SESSION['login'];
+				$sth_delete_ban -> execute($data_delete_ban);
+				$_SESSION['data_end_ban'] = 0;
+				$_SESSION['banned'] = 0;	
+			}
 		return TRUE;
 	}elseif(!empty($_COOKIE['login']) && !empty($_COOKIE['auth_long'])){
 		$sql_verif_auth = 'SELECT * FROM users WHERE login=:login AND salt=:salt';
@@ -233,6 +254,22 @@ function setSessionUser($dbh){
 		if($result){
 			$_SESSION['auth'] = TRUE;
 			$_SESSION['login'] = $_COOKIE['login'];
+			$_SESSION['status'] = $result['status'];
+			$_SESSION['banned'] = $result['banned'];
+			$t = time();
+			if($t < $result['data_end_ban']){
+				$_SESSION['data_end_ban'] = $result['data_end_ban'];	
+			}else{
+				$sql_delete_ban = "UPDATE users SET data_end_ban=:time, banned=:banned WHERE login=:login";
+				$sth_delete_ban = $dbh ->prepare($sql_delete_ban);
+				$data_delete_ban['time'] = 0;
+				$data_delete_ban['banned'] = 0;
+				$data_delete_ban['login'] = $_SESSION['login'];
+				$sth_delete_ban -> execute($data_delete_ban);
+				$_SESSION['data_end_ban'] = 0;
+				$_SESSION['banned'] = 0;	
+			}
+			
 			return TRUE;
 		}else{
 			return FALSE;
@@ -240,5 +277,40 @@ function setSessionUser($dbh){
 		}else{
 			return FALSE;
 		}
+}
+/*
+* Функция проверки является ли пользователь администратором или нет.
+*/
+function isAdmin(){
+	if($_SESSION['status'] == 10){
+		return TRUE;
+	}else{
+		return FALSE;
+	}
+}
+/*
+*
+*/
+function isAccess($status){
+	$a = 0;
+	if(is_array($status)){
+		
+		foreach($status as $stat){
+			if($stat == $_SESSION['status']){
+				$a += 1;
+			}
+			if($a == 0){
+				return FALSE;
+			}else{
+				return TRUE;
+			}
+		}
+	}else{
+		if($status == $_SESSION['status']){
+			return TRUE;
+		}else{
+			return FALSE;
+		}
+	}
 }
 ?>
